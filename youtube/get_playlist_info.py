@@ -81,11 +81,11 @@ def save_video_metadata(key, video_ids, path_pickle, path_responses):
 #         print(response_dict.keys())
         title = response_dict["items"][0]["snippet"]["title"]
         stats = response_dict["items"][0]["statistics"]
-        comments = stats['commentCount']
-        dislikes = stats['dislikeCount']
-        favourites = stats['favoriteCount']
-        likes = stats['likeCount']
-        views = stats['viewCount']
+        comments = int(stats['commentCount'])
+        dislikes = int(stats['dislikeCount'])
+        favourites = int(stats['favoriteCount'])
+        likes = int(stats['likeCount'])
+        views = int(stats['viewCount'])
         tags = response_dict["items"][0]["snippet"]["tags"]
         published = datetime.strptime(response_dict["items"][0]["snippet"]["publishedAt"].split("T")[0], '%Y-%m-%d')
         sub_lst = [title, published, tags, comments, likes, dislikes, favourites, views]
@@ -111,7 +111,7 @@ def main():
     path_pickle = sys.argv[2]
     path_responses = sys.argv[3]
 
-    print(PLAYLIST_ID)
+    print("Playlist ID: ", PLAYLIST_ID)
 
     params = {
             'playlistId': PLAYLIST_ID,
