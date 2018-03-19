@@ -4,13 +4,18 @@
 # In[1]:
 
 import pandas as pd 
+import numpy as np
 import string
 import sys
+from datetime import datetime
+import calendar 
+import warnings
+warnings.filterwarnings("ignore")
 
-data = pd.read_pickle("../data/videos_fetched")
+# data = pd.read_pickle("../data/videos_fetched")
 
 
-data["title"][0].split(" - ")[0].split(": ")[1]
+# data["title"][0].split(" - ")[0].split(": ")[1]
 
 
 def get_guest(title):
@@ -86,6 +91,43 @@ def add_page_name(df):
     df["page_name"] = df["guest_name"].apply(lambda x: x.replace(" ", "_"))
     return df
 
+def get_year(np_date):
+    """ Takes numpy datetime, converts to datetime and extracts year
+    """
+    ts = (np.datetime64(np_date) - np.datetime64('1970-01-01T00:00:00Z')) / np.timedelta64(1, 's')
+    return datetime.utcfromtimestamp(ts).year
+
+def get_month(np_date):
+    """ Takes numpy datetime, converts to datetime and extracts month
+    """
+    ts = (np.datetime64(np_date) - np.datetime64('1970-01-01T00:00:00Z')) / np.timedelta64(1, 's')
+    return datetime.utcfromtimestamp(ts).month
+
+def get_month_from_beginning(np_date):
+    """ Month 1 is the month when videos were first published
+    """
+    year = get_year(np_date)
+    month = get_month(np_date)
+    if year == 2015:
+        return month -6
+    else:
+        return month + 7 + 12*(get_year(np_date)-2016)
+
+def get_week_day(np_date):
+    """ Returns week day name from given date
+    """
+    ts = (np.datetime64(np_date) - np.datetime64('1970-01-01T00:00:00Z')) / np.timedelta64(1, 's')
+    return calendar.day_name[datetime.utcfromtimestamp(ts).weekday()]
+
+def extract_date(data):
+    """ Adds year, month, month from start, week_day columns from 'published' column 
+    """
+    data["year"] = data["published"].apply(lambda x: get_year(x))
+    data["month"] = data["published"].apply(lambda x: get_month(x))
+    data["month_from_start"] = data["published"].apply(lambda x: get_month_from_beginning(x))
+    data["week_day"] = data["published"].apply(lambda x: get_week_day(x))
+    return data
+
 def main():
 
     path_read = sys.argv[1]
@@ -106,6 +148,8 @@ def main():
     data = add_ngram(data, 3)
 
     data = add_page_name(data)
+
+    data = extract_date(data)
 
     data.to_pickle(path_save)
 
